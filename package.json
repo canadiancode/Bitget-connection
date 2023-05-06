@@ -1,0 +1,26 @@
+{
+  "name": "bitget-connection",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/canadiancode/Bitget-connection.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/canadiancode/Bitget-connection/issues"
+  },
+  "homepage": "https://github.com/canadiancode/Bitget-connection#readme",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "dotenv": "^16.0.3",
+    "node-fetch": "^2.6.9",
+    "ws": "^8.13.0"
+  }
+}
