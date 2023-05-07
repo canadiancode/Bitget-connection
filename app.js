@@ -162,6 +162,7 @@ const passphrase = process.env.API_PASSPHRASE;
 
 const https = require('https');
 
+let availableBalance = '0';
 const getAccountBalance = () => {
     const timestamp = Date.now().toString();
     const method = 'GET';
@@ -203,7 +204,7 @@ const getAccountBalance = () => {
           try {
             const parsedData = JSON.parse(data);
             console.log('Full data:', parsedData);
-            const availableBalance = parsedData.data.available;
+            availableBalance = parsedData.data.available;
             console.log('Available Balance in USDT:', availableBalance);
           } catch (error) {
             console.error('Error parsing response:', error.message);
@@ -214,7 +215,6 @@ const getAccountBalance = () => {
         console.error('Error fetching account balance:', error.message);
     }).end();
 };
-
 getAccountBalance();    
 
 
