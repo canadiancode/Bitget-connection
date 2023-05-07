@@ -1,64 +1,226 @@
-// installed packages:
-//dovenv
-//crypto
-//node-fetch@2
+// installed npm packages:
+// dovenv
+// express
+// body-parser
+// axios
+// websocket
+// crypto
+// node-fetch@2
 
-// consigure secret keys:
+// configure secret keys:
 require('dotenv').config();
 
+/////////////////////////////////////////////////////////////////
+// CREATE WEBHOOK URL -- CREATE WEBHOOK URL -- CREATE WEBHOOK URL
+/////////////////////////////////////////////////////////////////
+
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(bodyParser.json());
+
+app.post('/webhook', (req, res) => {
+
+    console.log('TradingView alert received:', req.body);
+    const comment = req.body.comment;
+
+    if (comment === 'Long') {
+    console.log('Going Long!')
+    postLongOrderEntry();
+    } else if (comment === 'Short') {
+    console.log('Going Short!')
+    postShortOrderEntry();
+    } else {
+    console.log('Exiting Position!')
+    closePosition();
+    };
+
+    res.sendStatus(200);
+});
+
+app.listen(port, () => {
+    console.log(`TradingView webhook listener is running on port ${port}`);
+});
+
+// for testing purposes, open two terminals
+// On one, run 'node app.js'
+// On the other run 'ngrok http 3000' & copy the https link adding the /webhook at the end to tradingview
+// the comment on Tradingview should be formatted like so: { "comment": "{{strategy.order.comment}}" }
+
+// Configure axios to use the QuotaGuard Static proxy
+const quotaGuardUrl = require('url');
+const axios = require('axios');
+if (process.env.QUOTAGUARDSTATIC_URL) {
+    const proxyUrl = quotaGuardUrl.parse(process.env.QUOTAGUARDSTATIC_URL);
+    axios.defaults.proxy = {
+        host: proxyUrl.hostname,
+        port: proxyUrl.port,
+        auth: {
+        username: proxyUrl.username,
+        password: proxyUrl.password,
+        },
+    };
+};
+
+////////////////////////////////////////////////////////
+// PRICE DATA FEED -- PRICE DATA FEED -- PRICE DATA FEED
+////////////////////////////////////////////////////////
+
+const WebSocket = require('websocket').client;
+const wsClient = new WebSocket();
+
+const subscribeToWebSocket = () => {
+  const subscriptionMessage = {
+    "op": "subscribe",
+    "args":[
+        {
+            "instType": "mc",
+            "channel": "ticker",
+            "instId": "BTCUSDT"
+        }
+    ]
+  };
+  return JSON.stringify(subscriptionMessage);
+};
+
+wsClient.on('connectFailed', (error) => {
+  console.log('Connect Error: ' + error.toString());
+});
+
+wsClient.on('connect', (connection) => {
+
+  console.log('WebSocket Client Connected');
+
+  connection.on('error', (error) => {
+    console.log("Connection Error: " + error.toString());
+  });
+
+  connection.on('close', () => {
+    console.log('WebSocket Connection Closed');
+  });
+
+  connection.on('message', (message) => {
+    if (message.type === 'utf8') {
+      const parsedMessage = JSON.parse(message.utf8Data);
+
+      let currentTime = (new Date()).toISOString().slice(0, 19).replace(/-/g, "/").replace("T", " ");
+
+      if (parsedMessage.data && Array.isArray(parsedMessage.data) && parsedMessage.data.length > 0) {
+        const lastPrice = parsedMessage.data[0].last;
+        console.log(`Bitcoin price at ${currentTime}: ` + lastPrice);
+      }
+    }
+  });
+
+  if (connection.connected) {
+    connection.send(subscribeToWebSocket());
+  }
+});
+const bitgetWebSocketURL = 'wss://ws.bitget.com/mix/v1/stream';
+wsClient.connect(bitgetWebSocketURL, null);
+
+
+///////////////////////////////////////////////////////////////////////
+// BITGET ORDER REQUEST -- BITGET ORDER REQUEST -- BITGET ORDER REQUEST
+///////////////////////////////////////////////////////////////////////
+
+const crypto = require('crypto');
+
 const apiKey = process.env.BITGET_API_KEY;
-const apiSecret = process.env.BITGET_API_SECRET;
-const apiUrl = 'https://api.bitget.com';
+const secret = process.env.BITGET_API_SECRET;
+const passphrase = process.env.API_PASSPHRASE;
 
-// Function to create the signature for the request
-function createSignature(apiSecret, preHash) {
-  const crypto = require('crypto');
-  return crypto.createHmac('sha256', apiSecret).update(preHash).digest('hex');
-}
+// const getAccountBalance = async () => {
+//     const timestamp = Date.now().toString();
+//     const method = 'GET';
+//     const path = '/api/account/v1/info';
+//     const baseURL = 'https://api.bitget.com';
+  
+//     const signData = method + '\n' + path + '\n' + timestamp;
+//     const signature = crypto.createHmac('sha256', secret).update(signData).digest('hex');
+  
+//     const headers = {
+//       'Content-Type': 'application/json',
+//       'ACCESS-KEY': apiKey,
+//       'ACCESS-SIGN': signature,
+//       'ACCESS-TIMESTAMP': timestamp,
+//       'ACCESS-PASSPHRASE': passphrase,
+//     };
+  
+//     try {
+//       const response = await axios.get(baseURL + path, { headers });
+//       console.log(response.data);
+//     } catch (error) {
+//       console.error('Error fetching account balance:', error.message);
+//     };
+// };
 
-// Function to make a request to the Bitget API
+// getAccountBalance();
 
-const fetch = require('node-fetch');
+const https = require('https');
 
-async function requestBitgetAPI(method, endpoint, queryParams = {}) {
-  const timestamp = Date.now();
-  const preHash = `${method}${endpoint}${timestamp}${JSON.stringify(queryParams)}`;
-  const signature = createSignature(apiSecret, preHash);
+const getAccountBalance = () => {
+    const timestamp = Date.now().toString();
+    const method = 'GET';
+    const path = '/api/mix/v1/account/account';
+    const queryParams = 'marginCoin=USDT&symbol=BTCUSDT_UMCBL';
+    const baseURL = 'https://api.bitget.com';
+  
+    const signData = timestamp + method + path + '?' + queryParams;
+    const signature = crypto
+      .createHmac('sha256', secret)
+      .update(signData)
+      .digest()
+      .toString('base64');
+  
+    const headers = {
+      'Content-Type': 'application/json',
+      'ACCESS-KEY': apiKey,
+      'ACCESS-SIGN': signature,
+      'ACCESS-TIMESTAMP': timestamp,
+      'ACCESS-PASSPHRASE': passphrase,
+    };
+  
+    const options = {
+      hostname: 'api.bitget.com',
+      path: path + '?' + queryParams,
+      method: method,
+      headers: headers,
+    };
+  
+    https.request(options, (res) => {
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'ACCESS-KEY': apiKey,
-    'ACCESS-SIGN': signature,
-    'ACCESS-TIMESTAMP': timestamp.toString(),
-  };
+        let data = '';
+    
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+    
+        res.on('end', () => {
+          try {
+            const parsedData = JSON.parse(data);
+            console.log('Full data:', parsedData);
+            const availableBalance = parsedData.data.available;
+            console.log('Available Balance in USDT:', availableBalance);
+          } catch (error) {
+            console.error('Error parsing response:', error.message);
+          }
+        });
+    
+    }).on('error', (error) => {
+        console.error('Error fetching account balance:', error.message);
+    }).end();
+};
 
-  const requestOptions = {
-    method: method,
-    headers: headers,
-  };
+getAccountBalance();    
 
-  if (method === 'POST') {
-    requestOptions.body = JSON.stringify(queryParams);
-  }
 
-  const response = await fetch(`${apiUrl}${endpoint}`, requestOptions);
-  const data = await response.json();
+////////////////////////////////////////////////////////
+// ORDER FUNCTIONS -- ORDER FUNCTIONS -- ORDER FUNCTIONS
+////////////////////////////////////////////////////////
 
-  if (!response.ok) {
-    throw new Error(`API request failed: ${data.message}`);
-  }
 
-  return data;
-}
 
-// Example usage: 
-// Fetch account information
-
-(async function() {
-  try {
-    const accountInfo = await requestBitgetAPI('GET', '/api/spot/v1/accounts');
-    console.log(accountInfo);
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-  }
-})();
