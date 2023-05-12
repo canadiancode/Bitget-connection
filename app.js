@@ -193,7 +193,7 @@ const getAccountBalance = () => {
         console.error('Error fetching account balance:', error.message);
     }).end();
 };
-// getAccountBalance(); 
+getAccountBalance(); 
 
 let openPositions = [];
 // get open positions
@@ -259,7 +259,7 @@ async function checkOpenPositions() {
     req.end();
   });
 };
-// checkOpenPositions();
+checkOpenPositions();
 
 // Fetch order number
 let trackingNumber = '';
@@ -477,7 +477,7 @@ async function postLongOrderEntry() {
 
   await createOrder('open_long', 0.01, clientOid) // direction, positionSize, clientOid
 };
-setTimeout(postLongOrderEntry, 5000);
+// setTimeout(postLongOrderEntry, 5000);
 
 async function postShortOrderEntry() {
   tradeDirection = 'short';
