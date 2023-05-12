@@ -494,7 +494,7 @@ async function postShortOrderEntry() {
 
   await createOrder('open_short', 0.01, clientOid)  // direction, positionSize, clientOid
 };
-setTimeout(postShortOrderEntry, 5000);
+// setTimeout(postShortOrderEntry, 5000);
 
 
 async function postExitOrder() {
@@ -511,4 +511,4 @@ async function postExitOrder() {
     postExitOrder();
   }
 };
-setTimeout(postExitOrder, 10000);
+// setTimeout(postExitOrder, 10000);
