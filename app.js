@@ -300,7 +300,7 @@ function getTrackingNumber() {
         const response = JSON.parse(data);
         if (response.code === '00000' && response.data) {
           console.log(response.data);
-          trackingNumber = response.data.trackingNo;
+          trackingNumber = response.data[0].trackingNo;
           console.log(`Tracking number: ${trackingNumber}`)
         } else {
           console.error('Error fetching current positions:', response);
@@ -454,73 +454,61 @@ let clientOid = '';
 let leverage = 1;
 let positionSize = 0;
 
-function postLongOrderEntry() {
+async function postLongOrderEntry() {
   tradeDirection = 'long';
 
-  getAccountBalance().then(() => {
-    positionSize = availableBalance * leverage;
-    console.log(`Actual position size would be ${positionSize}`);
+  await getAccountBalance();
 
-    const generateClientOid = () => {
-      const prefix = 'myapp';
-      const timestamp = Date.now();
-      const randomPart = Math.floor(Math.random() * 1e6);
-      return `${prefix}-${timestamp}-${randomPart}`;
-    };
+  positionSize = availableBalance * leverage;
+  console.log(`Actual position size would be ${positionSize}`);
 
-    clientOid = generateClientOid();
+  const generateClientOid = () => {
+    const prefix = 'myapp';
+    const timestamp = Date.now();
+    const randomPart = Math.floor(Math.random() * 1e6);
+    return `${prefix}-${timestamp}-${randomPart}`;
+  };
 
-    createOrder('open_long', 0.01, clientOid) // direction, positionSize, clientOid
-      .catch((error) => {
-        console.error('Error creating order:', error.message);
-      });
-  }).catch((error) => {
-    console.error('Error fetching account balance:', error.message);
-  });
+  clientOid = generateClientOid();
+
+  await createOrder('open_long', 0.01, clientOid) // direction, positionSize, clientOid
 };
-// setTimeout(postLongOrderEntry, 5000);
+setTimeout(postLongOrderEntry, 5000);
 
-function postShortOrderEntry() {
+async function postShortOrderEntry() {
   tradeDirection = 'short';
 
-  getAccountBalance().then(() => {
-    positionSize = availableBalance * leverage;
-    console.log(`Actual position size would be ${positionSize}`);
+  await getAccountBalance();
 
-    const generateClientOid = () => {
-      const prefix = 'myapp';
-      const timestamp = Date.now();
-      const randomPart = Math.floor(Math.random() * 1e6);
-      return `${prefix}-${timestamp}-${randomPart}`;
-    };
+  positionSize = availableBalance * leverage;
+  console.log(`Actual position size would be ${positionSize}`);
 
-    clientOid = generateClientOid();
+  const generateClientOid = () => {
+    const prefix = 'myapp';
+    const timestamp = Date.now();
+    const randomPart = Math.floor(Math.random() * 1e6);
+    return `${prefix}-${timestamp}-${randomPart}`;
+  };
 
-    createOrder('open_short', 0.01, clientOid)  // direction, positionSize, clientOid
-      .catch((error) => {
-        console.error('Error creating order:', error.message);
-      });
-  }).catch((error) => {
-    console.error('Error fetching account balance:', error.message);
-  });
-}
-setTimeout(postShortOrderEntry, 5000);
+  clientOid = generateClientOid();
+
+  await createOrder('open_short', 0.01, clientOid)  // direction, positionSize, clientOid
+};
+// setTimeout(postShortOrderEntry, 5000);
 
 
-function postExitOrder() {
+async function postExitOrder() {
 
-  getTrackingNumber()
-  .then(() => {
-    closePosition(trackingNumber);
-  })
-  .then(() => {
-    checkOpenPositions();
-    if (openPositions[0] === '0' && openPositions[1] === '0') {
-      console.log('All positions closed.');
-    } else {
-      postExitOrder();
-    }
-  });
+  await getTrackingNumber();
+    
+  await closePosition(trackingNumber);
 
+  await checkOpenPositions();
+
+  if (openPositions[0] === '0' && openPositions[1] === '0') {
+    console.log('All positions closed.');
+  } else {
+    postExitOrder();
+  }
 };
 setTimeout(postExitOrder, 10000);
