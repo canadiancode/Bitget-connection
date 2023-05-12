@@ -5,7 +5,7 @@
 // axios
 // websocket
 // crypto
-// node-fetch@2
+// https
 
 // configure secret keys:
 require('dotenv').config();
@@ -100,8 +100,12 @@ wsClient.on('connect', (connection) => {
     console.log("Connection Error: " + error.toString());
   });
 
-  connection.on('close', () => {
-    console.log('WebSocket Connection Closed');
+  connection.on('close', (code, reason) => {
+    console.log(`WebSocket connection closed: ${code} - ${reason}`);
+    setTimeout(() => {
+      console.log('Reconnecting WebSocket...');
+      subscribeToWebSocket();
+    }, 500);
   });
 
   connection.on('message', (message) => {
