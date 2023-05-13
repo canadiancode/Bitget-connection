@@ -66,6 +66,10 @@ if (process.env.QUOTAGUARDSTATIC_URL) {
     };
 };
 
+// const HttpsProxyAgent = require('https-proxy-agent');
+// const proxyUrl = process.env.QUOTAGUARDSTATIC_URL;
+// const agent = new HttpsProxyAgent(proxyUrl);
+
 ////////////////////////////////////////////////////////
 // PRICE DATA FEED -- PRICE DATA FEED -- PRICE DATA FEED
 ////////////////////////////////////////////////////////
@@ -132,7 +136,7 @@ wsClient.on('connect', (connection) => {
 
       if (parsedMessage.data && Array.isArray(parsedMessage.data) && parsedMessage.data.length > 0) {
         currentBitcoinPrice = parsedMessage.data[0].last;
-        console.log(`Bitcoin price at ${currentTime}: ` + currentBitcoinPrice);
+        console.log(`BTC price: ` + currentBitcoinPrice);
       }
     }
   });
@@ -211,7 +215,7 @@ const getAccountBalance = () => {
         console.error('Error fetching account balance:', error.message);
     }).end();
 };
-// getAccountBalance(); 
+getAccountBalance(); 
 
 let openPositions = [];
 // get open positions
