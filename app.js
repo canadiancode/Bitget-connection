@@ -74,7 +74,7 @@ const wsClient = new WebSocket();
 
 let currentBitcoinPrice = 0;
 
-const subscribeToWebSocket = () => {
+function subscribeToWebSocket() {
   const subscriptionMessage = {
     "op": "subscribe",
     "args":[
@@ -102,10 +102,7 @@ wsClient.on('connect', (connection) => {
 
   connection.on('close', (code, reason) => {
     console.log(`WebSocket connection closed: ${code} - ${reason}`);
-    setTimeout(() => {
-      console.log('Reconnecting WebSocket...');
-      subscribeToWebSocket();
-    }, 500);
+    setTimeout(subscribeToWebSocket, 1000);
   });
 
   connection.on('message', (message) => {
