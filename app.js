@@ -128,7 +128,6 @@ wsClient.on('connect', (connection) => {
 const bitgetWebSocketURL = 'wss://ws.bitget.com/mix/v1/stream';
 wsClient.connect(bitgetWebSocketURL, null);
 
-
 /////////////////////////////////////////////////////////////////////
 // BITGET ACCOUNT INFO -- BITGET ACCOUNT INFO -- BITGET ACCOUNT INFO
 /////////////////////////////////////////////////////////////////////
