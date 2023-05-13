@@ -96,13 +96,31 @@ wsClient.on('connect', (connection) => {
 
   console.log('WebSocket Client Connected');
 
+  // send ping to the server every 10 seconds
+  function ping() {
+    if (connection.connected) {
+      connection.ping();
+      console.log('Sent a ping to server');
+    }
+  };
+  setInterval(ping, 10000);
+
+  // received the ping (pong) from Bitget
+  connection.on('pong', () => {
+    console.log('Received a pong from server');
+  });
+  
+
   connection.on('error', (error) => {
     console.log("Connection Error: " + error.toString());
   });
 
   connection.on('close', (code, reason) => {
     console.log(`WebSocket connection closed: ${code} - ${reason}`);
-    setTimeout(subscribeToWebSocket, 1000);
+    setTimeout(() => {
+      console.log('Reconnecting...');
+      wsClient.connect(bitgetWebSocketURL, null);
+    }, 1000);
   });
 
   connection.on('message', (message) => {
@@ -138,6 +156,8 @@ const passphrase = process.env.API_PASSPHRASE;
 const https = require('https');
 
 let availableBalance = '0';
+let leverage = 1;
+let positionSize = 0;
 const getAccountBalance = () => {
     const timestamp = Date.now().toString();
     const method = 'GET';
@@ -179,7 +199,8 @@ const getAccountBalance = () => {
           try {
             const parsedData = JSON.parse(data);
             availableBalance = parsedData.data.available;
-            console.log('Available Balance in USDT:', availableBalance);
+            positionSize = availableBalance * leverage;
+            console.log(`Availalbe balance of ${availableBalance} with a position size of ${positionSize}`);
           } catch (error) {
             console.error('Error parsing response:', error.message);
           }
@@ -451,16 +472,11 @@ async function closePosition(trackingNo) {
 /////////////////////////////////////////////////////////////
 
 let clientOid = '';
-let leverage = 1;
-let positionSize = 0;
 
 async function postLongOrderEntry() {
   tradeDirection = 'long';
 
   await getAccountBalance();
-
-  positionSize = availableBalance * leverage;
-  console.log(`Actual position size would be ${positionSize}`);
 
   const generateClientOid = () => {
     const prefix = 'myapp';
@@ -471,7 +487,7 @@ async function postLongOrderEntry() {
 
   clientOid = generateClientOid();
 
-  await createOrder('open_long', 0.01, clientOid) // direction, positionSize, clientOid
+  await createOrder('open_long', positionSize, clientOid) // direction, positionSize, clientOid
 };
 // setTimeout(postLongOrderEntry, 5000);
 
@@ -480,9 +496,6 @@ async function postShortOrderEntry() {
 
   await getAccountBalance();
 
-  positionSize = availableBalance * leverage;
-  console.log(`Actual position size would be ${positionSize}`);
-
   const generateClientOid = () => {
     const prefix = 'myapp';
     const timestamp = Date.now();
@@ -492,7 +505,7 @@ async function postShortOrderEntry() {
 
   clientOid = generateClientOid();
 
-  await createOrder('open_short', 0.01, clientOid)  // direction, positionSize, clientOid
+  await createOrder('open_short', positionSize, clientOid)  // direction, positionSize, clientOid
 };
 // setTimeout(postShortOrderEntry, 5000);
 
