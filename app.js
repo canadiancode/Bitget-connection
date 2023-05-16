@@ -207,7 +207,9 @@ const getAccountBalance = () => {
           try {
             const parsedData = JSON.parse(data);
             availableBalance = parsedData.data.available;
-            positionSize = (availableBalance * leverage) / currentBitcoinPrice;
+            let unroundedPositionSize = (availableBalance * leverage) / currentBitcoinPrice;
+            positionSize = unroundedPositionSize.toFixed(4);
+            
             console.log(`Availalbe balance of ${availableBalance} with a position size of ${positionSize}`);
           } catch (error) {
             console.error('Error parsing response message:', error.message);
@@ -360,11 +362,20 @@ function getTrackingNumber() {
 ////////////////////////////////////////////////////////
 
 // open order
-function createOrder(direction, positionSize, clientOid) {
+function createOrder(direction, positionSize) {
+
   const timestamp = Date.now().toString();
   const method = 'POST';
   const path = '/api/mix/v1/order/placeOrder';
   const baseURL = 'https://api.bitget.com';
+
+  const generateClientOid = () => {
+    const prefix = 'myapp';
+    const timestamp = Date.now();
+    const randomPart = Math.floor(Math.random() * 1e6);
+    return `${prefix}-${timestamp}-${randomPart}`;
+  };
+  clientOid = generateClientOid();
 
   const requestBody = JSON.stringify({
     symbol: 'BTCUSDT_UMCBL',
@@ -501,17 +512,7 @@ async function postLongOrderEntry() {
   tradeDirection = 'long';
 
   await getAccountBalance();
-
-  const generateClientOid = () => {
-    const prefix = 'myapp';
-    const timestamp = Date.now();
-    const randomPart = Math.floor(Math.random() * 1e6);
-    return `${prefix}-${timestamp}-${randomPart}`;
-  };
-
-  clientOid = generateClientOid();
-
-  await createOrder('open_long', positionSize, clientOid) // direction, positionSize, clientOid
+  await createOrder('open_long', positionSize) // direction, positionSize, clientOid
 };
 // setTimeout(postLongOrderEntry, 5000);
 
@@ -519,17 +520,7 @@ async function postShortOrderEntry() {
   tradeDirection = 'short';
 
   await getAccountBalance();
-
-  const generateClientOid = () => {
-    const prefix = 'myapp';
-    const timestamp = Date.now();
-    const randomPart = Math.floor(Math.random() * 1e6);
-    return `${prefix}-${timestamp}-${randomPart}`;
-  };
-
-  clientOid = generateClientOid();
-
-  await createOrder('open_short', positionSize, clientOid)  // direction, positionSize, clientOid
+  await createOrder('open_short', positionSize)  // direction, positionSize, clientOid
 };
 // setTimeout(postShortOrderEntry, 5000);
 
