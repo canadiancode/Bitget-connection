@@ -207,7 +207,7 @@ const getAccountBalance = () => {
           try {
             const parsedData = JSON.parse(data);
             availableBalance = parsedData.data.available;
-            positionSize = availableBalance * leverage;
+            positionSize = (availableBalance * leverage) / currentBitcoinPrice;
             console.log(`Availalbe balance of ${availableBalance} with a position size of ${positionSize}`);
           } catch (error) {
             console.error('Error parsing response message:', error.message);
@@ -371,7 +371,7 @@ function createOrder(direction, positionSize, clientOid) {
     marginCoin: 'USDT',
     size: positionSize, // 0.01
     price: currentBitcoinPrice,
-    side: direction, // open_long
+    side: direction, // open_long, open_short
     orderType: 'market', // limit
     timeInForceValue: 'normal',
     clientOid: clientOid,
