@@ -6,7 +6,6 @@
 // websocket
 // crypto
 // https
-// url
 
 // configure secret keys:
 require('dotenv').config();
@@ -65,10 +64,6 @@ if (process.env.QUOTAGUARDSTATIC_URL) {
         },
     };
 };
-
-// const HttpsProxyAgent = require('https-proxy-agent');
-// const proxyUrl = process.env.QUOTAGUARDSTATIC_URL;
-// const agent = new HttpsProxyAgent(proxyUrl);
 
 ////////////////////////////////////////////////////////
 // PRICE DATA FEED -- PRICE DATA FEED -- PRICE DATA FEED
@@ -136,7 +131,7 @@ wsClient.on('connect', (connection) => {
 
       if (parsedMessage.data && Array.isArray(parsedMessage.data) && parsedMessage.data.length > 0) {
         currentBitcoinPrice = parsedMessage.data[0].last;
-        console.log(`BTC price: ` + currentBitcoinPrice);
+        console.log(`Bitcoin price at ${currentTime}: ` + currentBitcoinPrice);
       }
     }
   });
@@ -159,6 +154,7 @@ const secret = process.env.BITGET_API_SECRET;
 const passphrase = process.env.API_PASSPHRASE;
 
 const https = require('https');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 
 let availableBalance = '0';
 let leverage = 1;
@@ -184,15 +180,21 @@ const getAccountBalance = () => {
       'ACCESS-TIMESTAMP': timestamp,
       'ACCESS-PASSPHRASE': passphrase,
     };
+
+    const proxy = 'http://ghakmyawgi92qf:1eqrene038e5x6pgf606qjcs3eawdy@us-east-static-09.quotaguard.com:9293';
+    const agent = new HttpsProxyAgent(proxy);
   
     const options = {
       hostname: 'api.bitget.com',
       path: path + '?' + queryParams,
       method: method,
       headers: headers,
+      agent: agent,
     };
   
     https.request(options, (res) => {
+
+      console.log(`Response status code: ${res.statusCode}`);
 
         let data = '';
     
@@ -201,13 +203,14 @@ const getAccountBalance = () => {
         });
     
         res.on('end', () => {
+          console.log('Raw server response:', data);
           try {
             const parsedData = JSON.parse(data);
             availableBalance = parsedData.data.available;
             positionSize = availableBalance * leverage;
             console.log(`Availalbe balance of ${availableBalance} with a position size of ${positionSize}`);
           } catch (error) {
-            console.error('Error parsing response:', error.message);
+            console.error('Error parsing response message:', error.message);
           }
         });
     
@@ -244,11 +247,15 @@ async function checkOpenPositions() {
     'ACCESS-PASSPHRASE': passphrase,
   };
 
+  const proxy = 'http://ghakmyawgi92qf:1eqrene038e5x6pgf606qjcs3eawdy@us-east-static-09.quotaguard.com:9293';
+  const agent = new HttpsProxyAgent(proxy);
+
   const options = {
     hostname: 'api.bitget.com',
     path: path + '?' + queryParams,
     method: method,
     headers: headers,
+    agent: agent
   };
 
   return new Promise((resolve, reject) => {
@@ -307,11 +314,15 @@ function getTrackingNumber() {
     'ACCESS-PASSPHRASE': passphrase,
   };
 
+  const proxy = 'http://ghakmyawgi92qf:1eqrene038e5x6pgf606qjcs3eawdy@us-east-static-09.quotaguard.com:9293';
+  const agent = new HttpsProxyAgent(proxy);
+
   const options = {
     hostname: 'api.bitget.com',
     path: path + '?' + queryParams,
     method: method,
     headers: headers,
+    agent: agent
   };
 
   https.request(options, (res) => {
