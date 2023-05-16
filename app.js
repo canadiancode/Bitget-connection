@@ -218,7 +218,7 @@ const getAccountBalance = () => {
         console.error('Error fetching account balance:', error.message);
     }).end();
 };
-getAccountBalance(); 
+// getAccountBalance(); 
 
 let openPositions = [];
 // get open positions
@@ -255,7 +255,7 @@ async function checkOpenPositions() {
     path: path + '?' + queryParams,
     method: method,
     headers: headers,
-    agent: agent
+    agent: agent,
   };
 
   return new Promise((resolve, reject) => {
@@ -322,7 +322,7 @@ function getTrackingNumber() {
     path: path + '?' + queryParams,
     method: method,
     headers: headers,
-    agent: agent
+    agent: agent,
   };
 
   https.request(options, (res) => {
@@ -392,11 +392,15 @@ function createOrder(direction, positionSize, clientOid) {
     'ACCESS-PASSPHRASE': passphrase,
   };
 
+  const proxy = 'http://ghakmyawgi92qf:1eqrene038e5x6pgf606qjcs3eawdy@us-east-static-09.quotaguard.com:9293';
+  const agent = new HttpsProxyAgent(proxy);
+
   const options = {
     hostname: 'api.bitget.com',
     path: path,
     method: method,
     headers: headers,
+    agent: agent,
   };
 
   const req = https.request(options, (res) => {
@@ -450,11 +454,15 @@ async function closePosition(trackingNo) {
     'ACCESS-PASSPHRASE': passphrase,
   };
 
+  const proxy = 'http://ghakmyawgi92qf:1eqrene038e5x6pgf606qjcs3eawdy@us-east-static-09.quotaguard.com:9293';
+  const agent = new HttpsProxyAgent(proxy);
+
   const options = {
     hostname: 'api.bitget.com',
     path: path,
     method: method,
     headers: headers,
+    agent: agent,
   };
 
   const req = https.request(options, (res) => {
