@@ -131,7 +131,7 @@ wsClient.on('connect', (connection) => {
 
       if (parsedMessage.data && Array.isArray(parsedMessage.data) && parsedMessage.data.length > 0) {
         currentBitcoinPrice = parsedMessage.data[0].last;
-        console.log(`Bitcoin price at ${currentTime}: ` + currentBitcoinPrice);
+        console.log(`Time: ${currentTime} Price: $` + currentBitcoinPrice);
       }
     }
   });
