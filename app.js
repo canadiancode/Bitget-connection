@@ -2,10 +2,12 @@
 // dovenv
 // express
 // body-parser
+// url
 // axios
 // websocket
 // crypto
 // https
+// https-proxy-agent
 
 // configure secret keys:
 require('dotenv').config();
