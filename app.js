@@ -363,21 +363,25 @@ function getTrackingNumber() {
 // ORDER FUNCTIONS -- ORDER FUNCTIONS -- ORDER FUNCTIONS
 ////////////////////////////////////////////////////////
 
+function generateClientOid() {
+  const prefix = 'myapp';
+  const timestamp = Date.now();
+  const randomPart = Math.floor(Math.random() * 1e6);
+  return `${prefix}-${timestamp}-${randomPart}`;
+};
+generateClientOid();
+clientOid = generateClientOid();
+
 // open order
 function createOrder(direction, positionSize) {
+
+  clientOid = generateClientOid();
+  console.log(`client Oid: ${clientOid}`);
 
   const timestamp = Date.now().toString();
   const method = 'POST';
   const path = '/api/mix/v1/order/placeOrder';
   const baseURL = 'https://api.bitget.com';
-
-  const generateClientOid = () => {
-    const prefix = 'myapp';
-    const timestamp = Date.now();
-    const randomPart = Math.floor(Math.random() * 1e6);
-    return `${prefix}-${timestamp}-${randomPart}`;
-  };
-  clientOid = generateClientOid();
 
   const requestBody = JSON.stringify({
     symbol: 'BTCUSDT_UMCBL',
